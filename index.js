@@ -76,7 +76,7 @@ module.exports = function(properties) {
     if (dontFireEvent)
       return;
     
-    this._emitter.emit('changed', key);
+    this._emitter.emit('change', key);
   };
   DirtyableModel.prototype.setClean = function () {
     this._dirty = [];
