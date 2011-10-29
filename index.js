@@ -21,6 +21,12 @@ module.exports = function(properties) {
   });
 
   var DirtyableModel = function(props) {
+    if (typeof props == 'undefined')
+      props = {};
+    
+    if (typeof props !== 'object')
+      throw new Error('Invalid model constructor argument.');
+    
     var self = this;
     
     this._data = {};

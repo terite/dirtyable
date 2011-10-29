@@ -52,3 +52,13 @@ exports['Can create an instance of a model.'] = function (test) {
   test.equal(instance.id, 1);
   test.done();
 }
+
+exports['Cannot create model instance with bad constructor input.'] = function (test) {
+  var model = new DirtyableModel({
+    id: Number
+  });
+  test.throws(function() {
+    new model("Hello, World!");
+  });
+  test.done();
+}
