@@ -45,7 +45,6 @@ module.exports = function(properties) {
       if (typeof properties[key] == 'undefined')
         throw new Error(key + ' must be defined at model creation.');
       if (typeof value != properties[key]) {
-        console.log(key, properties);
         throw new Error(key + ' must be type of ' + properties[key]);
       }
         
