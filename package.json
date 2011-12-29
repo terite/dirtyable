@@ -14,7 +14,7 @@
     "url": "https://github.com/terite/Dirtyableobject.git"
   },
   "scripts": {
-    "test": "nodeunit test"
+    "test": "nodeunit test.js"
   },
   "version": "0.1.0"
 }

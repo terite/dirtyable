@@ -1,86 +1,69 @@
-var events = require('events');
+module.exports = function DirtyableObject(object, properties) {
+  var data = {},
+      dirty = [];
+  
+  var get = function (key) {
+    return data[key];
+  };
+  var set = function (key, value) {
+    data[key] = value;
+    object.setDirty(key);
+  };
+  var checkIfValidProperty = function (property) {
+    if (properties.indexOf(property) === -1)
+      throw new Error('Invalid property ' + property);
+  };
 
-var reserved = ['_data', '_dirty', '_emitter', 'on', 'setDirty', 'setClean'];
+  properties.forEach(function (i) {
+    data[i] = object[i];
+    delete object[i];
 
-module.exports = function(properties) {
-  if (typeof properties != "object")
-    throw new Error("Properties argument must be an Object");
-  if (Object.keys(properties).length == 0)
-    throw new Error("Must pass at least one property to track.");
+    Object.defineProperty(object, i, {
+      enumerable: true,
+      get: get.bind(null, i),
+      set: set.bind(null, i)
+    });
+  });
 
-  // Translate native objects like String and Number into strings.
-  Object.keys(properties).forEach(function (key) {
-    if (typeof properties[key] == 'function') {
-      properties[key] = typeof properties[key]();
+  Object.defineProperty(object, 'isDirty', {
+    enumerable: false,
+    get: function () {
+      return dirty.length > 0;
     }
   });
-  
-  Object.keys(properties).forEach(function(key) {
-    if (reserved.indexOf(key) != -1)
-      throw new Error('Key ' + key + ' is reserved and cannot be used.');
+
+  Object.defineProperty(object, 'dirty', {
+    enumerable: false,
+    value: dirty
   });
 
-  var DirtyableModel = function(props) {
-    if (typeof props == 'undefined')
-      props = {};
-    
-    if (typeof props !== 'object')
-      throw new Error('Invalid model constructor argument.');
-    
-    var self = this;
-    
-    this._data = {};
-    this._dirty = [];
-    this._emitter = new events.EventEmitter;
-    this.on = this._emitter.on.bind(this._emitter);
+  object.setDirty = function (key) {
+    checkIfValidProperty(key);
+    if (dirty.indexOf(key) == -1) {
+      dirty.push(key);
+      dirty.sort();
+    }
 
-    Object.defineProperty(this, 'isDirty', {
-      get: function () { return self._dirty.length !== 0; }
-    });
-    
-    var get = function(key) {
-      return self._data[key];
-    };
-    var set = function(key, value) {
-      if (typeof properties[key] == 'undefined')
-        throw new Error(key + ' must be defined at model creation.');
-      if (typeof value != properties[key]) {
-        throw new Error(key + ' must be type of ' + properties[key]);
-      }
-        
-      self._data[key] = value;
-      self.setDirty(key);
-    };
-    
-    Object.keys(properties).forEach(function(key) {
-      this._data[key] = null;
-
-      Object.defineProperty(self, key, {
-        get: get.bind(self, key),
-        set: set.bind(self, key)
-      });
-    }, this);
-    
-    Object.keys(props).forEach(function(key) {
-      self[key] = props[key];
-    });
   };
-
-  DirtyableModel.prototype.setDirty = function (key, dontFireEvent) {
-    if (this._dirty.indexOf(key) !== -1)
+  object.setClean = function (key) {
+    if (typeof key == 'undefined') {
+      dirty = [];
       return;
-    
-    this._dirty.push(key);
+    }
 
-    if (dontFireEvent)
+    checkIfValidProperty(key);
+    var i;
+    if (i = dirty.indexOf(key) !== -1)
+      dirty.splice(i, 1);
+  }
+
+  object.emitIfDirty = function (setClean) {
+    if (!object.isDirty)
       return;
-    
-    this._emitter.emit('change', key);
-  };
-  DirtyableModel.prototype.setClean = function () {
-    this._dirty = [];
-    this._emitter.emit('clean');
-  };
 
-  return DirtyableModel;
+    object.emit('dirty', dirty);
+
+    if (setClean)
+      object.setClean();
+  };
 };

@@ -1,60 +1,64 @@
-# DirtyableModel
-`DirtyableModel` is simply a function that returns a "class" that keeps track of which of its properties have changed.
+# DirtyableObject
+`DirtyableObject` is simply a function that keeps track of property changes. It
+also gives you some methods to manage these "dirty" properties.
 
 ## Usage.
 
-### Requiring.
-    var DirtyableModel = require('/path/to/DirtyableModel');
+### Prerequisites.
+Include DirtyableObject
+    var DirtyableObject = require('/path/to/DirtyableObject');
 
-No need to put in the /index.js, node figures that out automatically.
+The objects you call it on must be event emitters.
 
-### Creating a new model.
+### Basic use.
+Simply call `DirtyableObject(object, properties)`. For example:
 
-#### With type validation.
-    
-    var FooModel = new DirtyableModel({
-      'bar': String,
-      'baz': Number
+    var events = require('events'),
+        util = require('util');
+    var MyObject = function () {
+      events.EventEmitter.call(this);
+      this.foo = 1;
+      this.bar = 'Two';
+      DirtyableObject(this, ['foo', 'bar']);
+    }
+    util.inherits(MyObject, events.EventEmitter);
+
+    var instance = new MyObject;
+    instance.isDirty // false
+
+    instance.foo++;
+    instance.isDirty; // true
+    instance.on('dirty', function (properties) {
+      // Once emitIfDirty is called below, this will be called.
     });
+    instance.emitIfDirty();
 
-#### Reserved property names.
-The following property names are taken by the implementation and cannot be used.
-    _dirty
-    _data
-    on
-    isDirty
-    setDirty
-    setClean
+## API
 
-### Creating an instance of a model.
-Properties not set in the constructor are set to null. Model constrctors require no arguments, but you may pass in an object for assignment.
+### Properties
+`readonly bool isDirty`
+True if even one tracked property is dirty.
 
-    var ConstructorsDontRequireProperties = new FooModel();
+`array dirty`
+The array of dirty properties.
 
-    var FooModelInstance = new FooModel({
-      bar: 'This is a valid string'
-      // Not every property must be set in the constructor. Default value will be null.
-    });
+### Events
+Event: 'dirty'
+`function (properties) {}`
+Emitted when `emitIfDirty` is called and there are dirty properties. The
+argument `properties` is an array of dirty properties in alphabetical order.
 
+### Functions & Methods
+`DirtyableObject(object, properties)`
 
-### Getting and setting.
-    // Getting
-    var barProperty = FooModelInstance.bar; // 'This is a valid string'
-    
-    // Setting
-    FooModelInstance.bar = "A new value";
-    // This will trigger a "change" event with a key of "bar"
+`void emitIfDirty([setClean = false])`
+If any of the tracked properties have been marked dirty, the `dirty` event will
+be emitted. If the optional `setClean` parameter is set true, the `setClean`
+method with no paramters will be called immediately after event emission.
 
-### Knowing what is changed, and when.
-Event "change": function (key)
-Emitted when a property is changed.
+`void setDirty(property)`
+Mark a specific property as dirty.
 
-Event "clean": function ()
-Emitted when setClean is called
-
-#### Registering callbacks.
-
-    FooModelInstance.on("change", function (key) {
-      console.log(key, "was changed!");
-    });
-
+`void setClean([property])`
+Mark a property as clean. If the `property` parameter is not provided, all
+properties will be marked as clean.
