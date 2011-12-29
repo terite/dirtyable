@@ -34,7 +34,9 @@ module.exports = function DirtyableObject(object, properties) {
 
   Object.defineProperty(object, 'dirty', {
     enumerable: false,
-    value: dirty
+    get: function () {
+      return dirty;
+    }
   });
 
   object.setDirty = function (key) {
@@ -45,6 +47,7 @@ module.exports = function DirtyableObject(object, properties) {
     }
 
   };
+
   object.setClean = function (key) {
     if (typeof key == 'undefined') {
       dirty = [];
@@ -53,9 +56,9 @@ module.exports = function DirtyableObject(object, properties) {
 
     checkIfValidProperty(key);
     var i;
-    if (i = dirty.indexOf(key) !== -1)
+    if ((i = dirty.indexOf(key)) !== -1)
       dirty.splice(i, 1);
-  }
+  };
 
   object.emitIfDirty = function (setClean) {
     if (!object.isDirty)
