@@ -63,7 +63,7 @@ exports['emitIfDirty usage'] = function (test) {
     test.ok(false, 'Unexpected event fire.');
   });
   i.emitIfDirty();
-  i.removeAllListeners();
+  i.removeAllListeners('dirty');
   i.string = "I'm a dirty property";
   i.on('dirty', function (properties) {
     test.deepEqual(properties, ['string']);
