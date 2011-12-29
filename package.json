@@ -1,0 +1,20 @@
+{
+  "author": "David Stensland <me@terite.com>",
+  "name": "DirtyableObject",
+  "devDependencies": {
+    "nodeunit": ">= 0.6.4"
+  },
+  "description": "Easily keep track of changes to specific object properties.",
+  "engines": {
+    "node": ">= 0.4"
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/terite/Dirtyableobject.git"
+  },
+  "scripts": {
+    "test": "nodeunit test"
+  },
+  "version": "0.1.0"
+}
