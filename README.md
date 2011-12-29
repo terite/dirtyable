@@ -1,3 +1,4 @@
+[![Build Status](https://secure.travis-ci.org/terite/DirtyableObject.png)](http://travis-ci.org/terite/DirtyableObject)
 # DirtyableObject
 `DirtyableObject` is simply a function that keeps track of property changes. It
 also gives you some methods to manage these "dirty" properties.
