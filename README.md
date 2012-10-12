@@ -23,22 +23,21 @@ dirtyable.extend(obj, ['foo', 'bar']);
 
 obj.foo // => 'fizzle'
 obj.foo_isChanged // => false
-obj.bar_isChanged // => false
-obj.isChanged // => false
-
-obj.foo = 'fo shizzle';
+obj.foo = 'fo shizzle'
 obj.foo_isChanged // => true
-obj.bar_isChanged // => false
-obj.isChanged // => true
-
-obj.foo_was // => 'fizzle'
-obj.foo_change // => ['fizzle', 'fo shizzle']
-
-obj.changed // => ['foo']
-obj.changes // => { 'foo' => ['fizzle', 'fo shizzle'] }
-
-// To reset, set it back to its original value.
-obj.foo = 'fizzle'
-obj.foo_isChanged // => false
-obj.changed // => [ ]
 ```
+
+### What it does
+On the object, it defines the following getters
+
+* `.isChanged`
+* `.changes`
+* `.changed`
+
+And for each property it extends, it overrides the property with a getter/setter, then adds the following
+
+* `.<property>_isChanged`
+* `.<property>_change`
+* `.<property>_was`
+
+For more information, check out the [annotated source](http://terite.github.com/dirtyable/docs/dirtyable.html)
