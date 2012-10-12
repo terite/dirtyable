@@ -3,7 +3,7 @@ var vows = require('vows'),
     dirtyable = require('./dirtyable.js');
 
 vows.describe('Rails-like dirty behavior').addBatch({
-    'When using a dirtied object': {
+    'A dirtied object': {
         topic: function() {
             var object = {
                 foo: 'bar',
@@ -14,12 +14,12 @@ vows.describe('Rails-like dirty behavior').addBatch({
             dirtyable.extend(object, ['foo', 'bar', 'baz']);
             return object;
         },
-        'the object starts with its original values': function(obj) {
+        'should start with its original values': function(obj) {
             assert.equal(obj.foo, 'bar');
             assert.equal(obj.bar, 'I already said bar!');
             assert.equal(typeof obj.baz, 'undefined');
         },
-        'the object starts unchanged': function(obj) {
+        'should unchanged': function(obj) {
             assert.equal(obj.foo_isChanged, false);
             assert.equal(obj.bar_isChanged, false);
             assert.equal(obj.isChanged, false);
@@ -32,7 +32,7 @@ vows.describe('Rails-like dirty behavior').addBatch({
 
             assert.deepEqual(obj.changedProperties, {});
         },
-        'the object tracks changes': function(obj) {
+        'should track changes via setter': function(obj) {
             assert.equal(obj.foo_isChanged, false);
 
             obj.foo = 'baz';
@@ -47,24 +47,24 @@ vows.describe('Rails-like dirty behavior').addBatch({
 
             assert.deepEqual(obj.changedProperties, {'foo': 'bar'});
         },
-        'and trying to clean the object': {
+        'should be cleanable': {
             topic: function(obj) {
                 obj.bar = 'changed_bar';
                 return obj;
             },
-            'setting it to the original value cleans it.': function(obj) {
+            'by setting a property to its original value': function(obj) {
                 assert.equal(obj.foo_isChanged, true);
                 obj.foo = 'bar';
                 assert.equal(obj.foo_isChanged, false);
             },
-            'calling reset_property cleans it': function(obj) {
+            'by calling reset_property': function(obj) {
                 assert.equal(obj.foo_isChanged, false);
                 obj.foo = 'new foo';
                 assert.equal(obj.foo_isChanged, true);
                 obj.reset_foo();
                 assert.equal(obj.foo_isChanged, false);
             },
-            'clearing changedProperties cleans it': function(obj) {
+            'by calling changedProperties.clear()': function(obj) {
                 assert.equal(obj.isChanged, true);
                 obj.changedProperties.clear();
                 assert.equal(obj.isChanged, false);
