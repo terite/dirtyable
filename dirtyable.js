@@ -22,7 +22,16 @@ var extend = function(object, keys) {
     // When properties are changed, their original values are stored here
     // in the format of `{ property: original }`
     //
-        changed_originals = {};
+        changed_properties = {};
+
+    // Allow use of `object.changed_properties.clear()`
+    Object.defineProperty(changed_properties, 'clear', {
+        enumerable: false,
+        value: function() {
+            for (var i in changed_properties)
+                delete changed_properties[i];
+        }
+    });
 
     // ## Object-level property getters ##
 
@@ -32,7 +41,7 @@ var extend = function(object, keys) {
     // This returns true if any tracked values on the object have been changed.
     //
     var object_isChanged = function() {
-        return Object.keys(changed_originals).length > 0;
+        return Object.keys(changed_properties).length > 0;
     };
 
     //
@@ -45,7 +54,7 @@ var extend = function(object, keys) {
     //     object.changed # => ['foo']
     //
     var object_changed = function() {
-        return Object.keys(changed_originals);
+        return Object.keys(changed_properties);
     };
 
     //
@@ -60,8 +69,8 @@ var extend = function(object, keys) {
     //
     var object_changes = function() {
         var out = {};
-        for (var i in changed_originals)
-            out[i] = [changed_originals[i], data[i]];
+        for (var i in changed_properties)
+            out[i] = [changed_properties[i], data[i]];
 
         return out;
     }
@@ -83,10 +92,10 @@ var extend = function(object, keys) {
             return;
 
         // Setting a value back to its original value "cleans" it.
-        if (changed_originals[property] == value) {
-            delete changed_originals[property];
+        if (changed_properties[property] == value) {
+            delete changed_properties[property];
         } else {
-            changed_originals[property] = data[property];
+            changed_properties[property] = data[property];
         }
 
         data[property] = value;
@@ -97,7 +106,7 @@ var extend = function(object, keys) {
     // like `object.isChanged`, but for one property.
     //
     var property_isChanged = function(property) {
-        return typeof changed_originals[property] !== 'undefined';
+        return typeof changed_properties[property] !== 'undefined';
     };
 
     //
@@ -106,7 +115,7 @@ var extend = function(object, keys) {
     //
     var property_was = function(property) {
         return property_isChanged(property)
-            ? changed_originals[property]
+            ? changed_properties[property]
             : void(0); // TODO: What does rails do here?
     }
 
@@ -121,7 +130,7 @@ var extend = function(object, keys) {
     //
     var property_change = function(property) {
         return property_isChanged(property)
-            ? [changed_originals[property], data[property]]
+            ? [changed_properties[property], data[property]]
             : void(0); // TODO: What does rails do here?
     }
 
@@ -142,6 +151,11 @@ var extend = function(object, keys) {
         enumerable: false,
         get: object_changes
     });
+
+    Object.defineProperty(object, 'changedProperties', {
+        enumerable: false,
+        value: changed_properties
+    })
 
     //
     // ### Define property-level properties.

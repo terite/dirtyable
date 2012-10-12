@@ -3,14 +3,15 @@ var vows = require('vows'),
     dirtyable = require('./dirtyable.js');
 
 vows.describe('Rails-like dirty behavior').addBatch({
-    'When using a dirtied object.': {
+    'When using a dirtied object': {
         topic: function() {
             var object = {
                 foo: 'bar',
-                bar: 'I already said bar!'
+                bar: 'I already said bar!',
+                // keep baz undefined.
             };
 
-            dirtyable.extend(object, ['foo', 'bar']);
+            dirtyable.extend(object, ['foo', 'bar', 'baz']);
             return object;
         },
         'the object starts with its original values': function(obj) {
@@ -28,6 +29,8 @@ vows.describe('Rails-like dirty behavior').addBatch({
 
             assert.equal(typeof obj.changes, 'object');
             assert.equal(Object.keys(obj.changes).length, 0);
+
+            assert.deepEqual(obj.changedProperties, {});
         },
         'the object tracks changes': function(obj) {
             assert.equal(obj.foo_isChanged, false);
@@ -41,6 +44,24 @@ vows.describe('Rails-like dirty behavior').addBatch({
             assert.equal(obj.isChanged, true);
             assert.deepEqual(obj.changed, ['foo']);
             assert.deepEqual(obj.changes, {'foo': ['bar', 'baz']});
+
+            assert.deepEqual(obj.changedProperties, {'foo': 'bar'});
+        },
+        'and trying to clean the object': {
+            topic: function(obj) {
+                obj.bar = 'changed_bar';
+                return obj;
+            },
+            'setting it to the original value cleans it.': function(obj) {
+                assert.equal(obj.foo_isChanged, true);
+                obj.foo = 'bar';
+                assert.equal(obj.foo_isChanged, false);
+            },
+            'clearing changedProperties cleans it': function(obj) {
+                assert.equal(obj.isChanged, true);
+                obj.changedProperties.clear();
+                assert.equal(obj.isChanged, false);
+            }
         }
     }
 }).export(module);
