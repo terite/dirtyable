@@ -1,3 +1,5 @@
+## This readme is out of date.
+
 [![Build Status](https://secure.travis-ci.org/terite/DirtyableObject.png)](http://travis-ci.org/terite/DirtyableObject)
 # DirtyableObject
 `DirtyableObject` is simply a function that keeps track of property changes. It
