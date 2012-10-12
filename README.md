@@ -1,74 +1,44 @@
-## This readme is out of date.
+[![Build Status](https://secure.travis-ci.org/terite/dirtyable.png)](http://travis-ci.org/terite/dirtyable)
+#dirtyable.js
+`dirtyable.js` helps you keep track of changes to properties on objects.
 
-[![Build Status](https://secure.travis-ci.org/terite/DirtyableObject.png)](http://travis-ci.org/terite/DirtyableObject)
-# DirtyableObject
-`DirtyableObject` is simply a function that keeps track of property changes. It
-also gives you some methods to manage these "dirty" properties.
+It aims to be a javascript equivalent to [ActiveModel::Dirty](http://api.rubyonrails.org/classes/ActiveModel/Dirty.html)
 
-## Usage.
+### Get it.
+`npm install dirtyable`
 
-### Prerequisites.
-Include DirtyableObject
-    var DirtyableObject = require('/path/to/DirtyableObject');
+### Track your objects.
+`dirtyable.extend(object, ['foo', 'bar'])`
 
-The objects you call it on must be event emitters.
-
-### Basic use.
-Simply call `DirtyableObject(object, properties)`. For example:
-
+### How to use it
 ```javascript
-var events = require('events'),
-    util = require('util');
+var dirtyable = require('dirtyable');
 
-var MyObject = function () {
-    events.EventEmitter.call(this);
-    this.foo = 1;
-    this.bar = 'Two';
-    DirtyableObject(this, ['foo', 'bar']);
-}
-util.inherits(MyObject, events.EventEmitter);
+var obj = {
+    foo: 'fizzle',
+    bar: 42,
+    baz: 'black sheep'
+};
+dirtyable.extend(obj, ['foo', 'bar']);
 
-var instance = new MyObject;
-instance.isDirty // false
+obj.foo // => 'fizzle'
+obj.foo_isChanged // => false
+obj.bar_isChanged // => false
+obj.isChanged // => false
 
-instance.foo++;
-instance.isDirty; // true
-instance.on('dirty', function (properties) {
-    // Once emitIfDirty is called below, this will be called.
-});
-instance.emitIfDirty();
+obj.foo = 'fo shizzle';
+obj.foo_isChanged // => true
+obj.bar_isChanged // => false
+obj.isChanged // => true
+
+obj.foo_was // => 'fizzle'
+obj.foo_change // => ['fizzle', 'fo shizzle']
+
+obj.changed // => ['foo']
+obj.changes // => { 'foo' => ['fizzle', 'fo shizzle'] }
+
+// To reset, set it back to its original value.
+obj.foo = 'fizzle'
+obj.foo_isChanged // => false
+obj.changed // => [ ]
 ```
-
-## API
-
-### Properties
-readonly bool `isDirty`
-True if even one tracked property is dirty.
-
-`array dirty`
-The array of dirty properties.
-
-### Events
-Event: 'dirty'
-`function (properties) {}`
-
-Emitted when `emitIfDirty` is called and there are dirty properties. The
-argument `properties` is an array of dirty properties in alphabetical order.
-
-### Functions & Methods
-`DirtyableObject(object, properties)`
-
-`void emitIfDirty([setClean = false])`
-
-If any of the tracked properties have been marked dirty, the `dirty` event will
-be emitted. If the optional `setClean` parameter is set true, the `setClean`
-method with no paramters will be called immediately after event emission.
-
-`void setDirty(property)`
-
-Mark a specific property as dirty.
-
-`void setClean([property])`
-
-Mark a property as clean. If the `property` parameter is not provided, all
-properties will be marked as clean.
