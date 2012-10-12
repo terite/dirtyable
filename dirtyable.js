@@ -1,5 +1,23 @@
 // dirtyable may be freely distributed under the MIT license.
 
+// for `property_will_change()` to work correctly on arrays and objects and
+// such, the value stored as the original needs to be a clone of the value
+// before the change. This is used for that.
+var clone = function(obj) {
+    if (obj !== Object(obj))
+        return obj;
+
+    if (Array.isArray(obj))
+        return obj.slice();
+
+    var out = {},
+        prop;
+    for (prop in obj)
+        out[prop] = obj[prop];
+
+    return out;
+};
+
 var extend = function(object, keys) {
     //
     // ## Initial Setup ##
@@ -138,6 +156,32 @@ var extend = function(object, keys) {
     }
 
     //
+    // Handler for `object.property_will_change`
+    //
+    // This is how you mark something like an array as changed. For example:
+    //
+    //     object.foo # => []
+    //     object.foo.push(1)
+    //     object.foo_isChanged # => false
+    //
+    // `foo` has not been marked as changed because `foo` was not set to a new
+    // value. Rather, the object that is `foo` itself changed. To track changes,
+    // call property_will_change() before the change happens. For example:
+    //
+    //     object.foo # => []
+    //     object.foo_will_change()
+    //     object.foo.push(1);
+    //     object.foo_isChanged # => true
+    //     object.foo_change # => [[], [1]]
+    //
+    var property_will_change = function(property) {
+        if (property_isChanged(property))
+            return;
+
+        changed_properties[property] = clone(data[[property]]);
+    };
+
+    //
     // Handler for `object.reset_property`
     //
     var reset_property = function(property) {
@@ -207,6 +251,12 @@ var extend = function(object, keys) {
         Object.defineProperty(object, property + '_change', {
             enumerable: false,
             get: property_change.bind(null, property)
+        });
+
+        // Define `object.property_will_change`
+        Object.defineProperty(object, property + '_will_change', {
+            enumerable: false,
+            value: property_will_change.bind(null, property)
         });
 
         // Define `object.property_change`

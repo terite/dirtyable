@@ -9,9 +9,10 @@ vows.describe('Rails-like dirty behavior').addBatch({
                 foo: 'bar',
                 bar: 'I already said bar!',
                 // keep baz undefined.
+                arrayTest: [],
             };
 
-            dirtyable.extend(object, ['foo', 'bar', 'baz']);
+            dirtyable.extend(object, ['foo', 'bar', 'baz', 'arrayTest']);
             return object;
         },
         'should start with its original values': function(obj) {
@@ -46,6 +47,18 @@ vows.describe('Rails-like dirty behavior').addBatch({
             assert.deepEqual(obj.changes, {'foo': ['bar', 'baz']});
 
             assert.deepEqual(obj.changedProperties, {'foo': 'bar'});
+        },
+        'should track changes via property_will_change': function(obj) {
+            // Normally, pushing does nothing
+            assert.equal(obj.arrayTest_isChanged, false);
+            obj.arrayTest.push(1);
+            assert.equal(obj.arrayTest_isChanged, false);
+
+            // But when we call will_change beforehand, it works!
+            obj.arrayTest_will_change();
+            obj.arrayTest.push(2);
+            assert.equal(obj.arrayTest_isChanged, true);
+            assert.deepEqual(obj.arrayTest_change, [[1], [1, 2]]);
         },
         'should be cleanable': {
             topic: function(obj) {
