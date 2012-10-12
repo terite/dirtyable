@@ -137,6 +137,16 @@ var extend = function(object, keys) {
             : void(0); // TODO: What does rails do here?
     }
 
+    //
+    // Handler for `object.reset_property`
+    //
+    var reset_property = function(property) {
+        if (!property_isChanged(property))
+            return;
+
+        property_set(property, changed_properties[property]);
+    };
+
     // ## Object modification starts here##
 
     // ### Define object-level properties.
@@ -199,6 +209,11 @@ var extend = function(object, keys) {
             get: property_change.bind(null, property)
         });
 
+        // Define `object.property_change`
+        Object.defineProperty(object, 'reset_' + property, {
+            enumerable: false,
+            value: reset_property.bind(null, property)
+        });
     });
 }
 

@@ -57,6 +57,13 @@ vows.describe('Rails-like dirty behavior').addBatch({
                 obj.foo = 'bar';
                 assert.equal(obj.foo_isChanged, false);
             },
+            'calling reset_property cleans it': function(obj) {
+                assert.equal(obj.foo_isChanged, false);
+                obj.foo = 'new foo';
+                assert.equal(obj.foo_isChanged, true);
+                obj.reset_foo();
+                assert.equal(obj.foo_isChanged, false);
+            },
             'clearing changedProperties cleans it': function(obj) {
                 assert.equal(obj.isChanged, true);
                 obj.changedProperties.clear();
