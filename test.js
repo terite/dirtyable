@@ -1,6 +1,6 @@
 var vows = require('vows'),
     assert = require('assert'),
-    dirtyable = require('./index.js');
+    dirtyable = require('./dirtyable.js');
 
 vows.describe('Rails-like dirty behavior').addBatch({
     'When using a dirtied object.': {
