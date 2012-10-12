@@ -11,7 +11,7 @@
     "main": "dirtyable.js",
     "repository": {
         "type": "git",
-        "url": "https://github.com/terite/dirtyable.git"
+        "url": "https://github.com/terite/dirtyable"
     },
     "scripts": {
         "test": "vows test.js --spec"
