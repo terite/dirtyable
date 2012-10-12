@@ -85,7 +85,7 @@ var extend = function(object, keys) {
     };
 
     //
-    // #### Helper method for `object.property = value`
+    // Handler for `object.property = value`
     //
     var property_set = function(property, value) {
         if (data[property] == value)
@@ -102,15 +102,17 @@ var extend = function(object, keys) {
     };
 
     //
-    // #### Helper method for `object.property_isChanged
-    // like `object.isChanged`, but for one property.
+    // Handler for `object.property_isChanged
+    //
+    // like `object.isChanged`, but specific to one property.
     //
     var property_isChanged = function(property) {
         return typeof changed_properties[property] !== 'undefined';
     };
 
     //
-    // #### Helper method for `object.property_was`
+    // Handler for `object.property_was`
+    //
     // Returns the value of the property before it was changed.
     //
     var property_was = function(property) {
@@ -120,7 +122,8 @@ var extend = function(object, keys) {
     }
 
     //
-    // #### Helper method for object.property_change
+    // Handler for `object.property_change`
+    //
     // Like `object.changes`, but for a single property.
     // For example:
     //
