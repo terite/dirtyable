@@ -1,113 +1,46 @@
-var events = require('events'),
-    util = require('util'),
-    DirtyableObject = require('./index.js');
+var vows = require('vows'),
+    assert = require('assert'),
+    dirtyable = require('./index.js');
 
-var TestObject = function () {
-  events.EventEmitter.call(this);
-  this.bool = true;
-  this.number = 1337;
-  this.object = {foo: 'bar'};
-  this.string = "Hello, World!";
-  DirtyableObject(this, ['bool', 'number', 'object', 'string']);
-};
-util.inherits(TestObject, events.EventEmitter);
+vows.describe('Rails-like dirty behavior').addBatch({
+    'When using a dirtied object.': {
+        topic: function() {
+            var object = {
+                foo: 'bar',
+                bar: 'I already said bar!'
+            };
 
-exports['Example with asserts.'] = function (test) {
-  var MyObject = function () {
-    events.EventEmitter.call(this);
-    this.foo = 1;
-    this.bar = 'Two';
-    DirtyableObject(this, ['foo', 'bar']);
-  }
-  util.inherits(MyObject, events.EventEmitter);
+            dirtyable.extend(object, ['foo', 'bar']);
+            return object;
+        },
+        'the object starts with its original values': function(obj) {
+            assert.equal(obj.foo, 'bar');
+            assert.equal(obj.bar, 'I already said bar!');
+            assert.equal(typeof obj.baz, 'undefined');
+        },
+        'the object starts unchanged': function(obj) {
+            assert.equal(obj.foo_isChanged, false);
+            assert.equal(obj.bar_isChanged, false);
+            assert.equal(obj.isChanged, false);
 
-  var instance = new MyObject;
-  test.strictEqual(instance.foo, 1);
-  test.strictEqual(instance.bar, 'Two');
-  test.strictEqual(instance.isDirty, false);
+            assert(Array.isArray(obj.changed));
+            assert.equal(obj.changed.length, 0);
 
-  test.equal(instance.foo++, 1);
-  test.equal(instance.foo, 2);
-  test.equal(instance.bar, 'Two');
-  test.equal(instance.isDirty, true);
-  test.deepEqual(instance.dirty, ['foo']);
-  instance.on('dirty', function (properties) {
-    test.deepEqual(properties, ['foo']);
-  });
-  instance.emitIfDirty();
-  
-  test.done();
-};
+            assert.equal(typeof obj.changes, 'object');
+            assert.equal(Object.keys(obj.changes).length, 0);
+        },
+        'the object tracks changes': function(obj) {
+            assert.equal(obj.foo_isChanged, false);
 
-exports['Properties retain initial values'] = function (test) {
-  var i = new TestObject;
-  test.strictEqual(i.bool, true);
-  test.strictEqual(i.number, 1337);
-  test.deepEqual(i.object, {foo: 'bar'});
-  test.strictEqual(i.string, "Hello, World!");
-  test.done();
-};
+            obj.foo = 'baz';
+            assert.equal(obj.foo_isChanged, true);
+            assert.equal(obj.bar_isChanged, false);
+            assert.equal(obj.foo_was, 'bar');
+            assert.deepEqual(obj.foo_change, ['bar', 'baz']);
 
-exports['Objects initially not dirty'] = function (test) {
-  var i = new TestObject;
-  test.equal(i.isDirty, false);
-  test.deepEqual(i.dirty, []);
-  test.done();
-};
-
-exports['emitIfDirty usage'] = function (test) {
-  var i = new TestObject;
-  test.expect(2);
-
-  i.on('dirty', function () {
-    test.ok(false, 'Unexpected event fire.');
-  });
-  i.emitIfDirty();
-  i.removeAllListeners('dirty');
-  i.string = "I'm a dirty property";
-  i.on('dirty', function (properties) {
-    test.deepEqual(properties, ['string']);
-  });
-  i.emitIfDirty(); // should fire
-  i.emitIfDirty(true); // should fire
-  i.emitIfDirty(); // should NOT fire
-  test.done();
-};
-
-// Share between this test and next.
-var i;
-exports['setDirty usage'] = function (test) {
-  i = new TestObject;
-  i.setDirty('string');
-  test.deepEqual(i.dirty, ['string']);
-
-  i.setDirty('bool');
-  test.deepEqual(i.dirty, ['bool', 'string']);
-
-  test.throws(function () {
-    i.setDirty();
-  });
-  test.throws(function () {
-    i.setDirty('unknown');
-  });
-  
-  i.setDirty('number');
-  i.setDirty('object');
-  test.deepEqual(i.dirty, ['bool', 'number', 'object', 'string']);
-  test.done();
-};
-
-exports['setClean usage'] = function (test) {
-  test.throws(function () {
-    i.setClean('unknown');
-  });
-  test.deepEqual(i.dirty, ['bool', 'number', 'object', 'string']);
-
-  i.setClean('object');
-  test.deepEqual(i.dirty, ['bool', 'number', 'string']);
-
-  i.setClean();
-  test.deepEqual(i.dirty, []);
-  test.equal(i.isDirty, false);
-  test.done();
-};
+            assert.equal(obj.isChanged, true);
+            assert.deepEqual(obj.changed, ['foo']);
+            assert.deepEqual(obj.changes, {'foo': ['bar', 'baz']});
+        }
+    }
+}).export(module);
