@@ -39,5 +39,3 @@ And for each property it extends, it overrides the property with a getter/setter
 * `.<property>_isChanged`
 * `.<property>_change`
 * `.<property>_was`
-
-For more information, check out the [annotated source](http://terite.github.com/dirtyable/docs/dirtyable.html)
